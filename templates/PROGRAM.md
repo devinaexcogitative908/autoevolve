@@ -9,7 +9,17 @@ Before running, read:
 2. `local/config.json` — agent config (mutable files, weights, thresholds)
 3. `local/experiments.tsv` — experiment history
 4. `local/signals.jsonl` — raw feedback signals
-5. The agent's current mutable files (listed in config.json `mutable_files`)
+5. The agent's current mutable files (see path resolution below)
+
+### Path resolution
+
+All file references in this document are relative to the autoevolve install directory (where this file lives), UNLESS they refer to the agent's mutable/immutable files. Those live in the agent's **workspace**, configured as `workspace_path` in `local/config.json`.
+
+Concrete example: if `workspace_path` is `/home/user/.openclaw/workspace` and `mutable_files` lists `["AGENTS.md", "SOUL.md"]`, the actual file paths are:
+- `/home/user/.openclaw/workspace/AGENTS.md`
+- `/home/user/.openclaw/workspace/SOUL.md`
+
+**Read these files now** — you need to understand the agent's current instructions before you can propose changes. All git commands in steps 8 (branch, commit, merge, push) must also run inside the `workspace_path` directory.
 
 ## The Loop
 
@@ -68,11 +78,13 @@ Write a brief analysis (3-5 bullet points) to `local/proposed-mutation.md` under
 
 ### 4. Roll for Mutation Strategy
 
-Before proposing, roll the D20 to determine what kind of mutation to attempt:
+Before proposing, roll the D20 to determine what kind of mutation to attempt. Use `--json` to get machine-readable output:
 
 ```bash
-python3 services/d20/roll.py
+python3 services/d20/roll.py --json
 ```
+
+This prints a JSON object to stdout with `roll`, `category`, `name`, and `description` fields. Capture the output and use it in your proposal.
 
 The roll determines the mutation *approach*, NOT the mutation *target*. The target always comes from the signal analysis in step 3. The D20 tells you HOW to act on what the signals are saying:
 
@@ -82,7 +94,7 @@ The roll determines the mutation *approach*, NOT the mutation *target*. The targ
 
 **Signals pick the WHERE. The D20 picks the HOW.**
 
-Exceptions: Roll 1 (rest cycle) skips entirely. Roll 20 (freak mutation) is intentionally unconstrained — go creative, the human reviews it anyway.
+Exceptions: Roll 1 (rest cycle) skips entirely — write "rest cycle" to the analysis and stop. Roll 20 (freak mutation) is intentionally unconstrained — go creative, the human reviews it anyway.
 
 Also read `docs/mutation-strategies.md` for the full table and deeper guidance.
 
@@ -145,10 +157,9 @@ cp <mutable_file> local/snapshots/<mutable_file>
 
 If `review_mode` is `always` (or the file requires review):
 
-Post the proposal summary to the configured notification channel. For Discord DM:
+Post the proposal summary to the configured notification channel. For Discord DM, build the JSON payload in a temporary file to avoid shell escaping issues:
 
 ```bash
-# Read the bot token
 TOKEN=$(cat <bot_token_path>)
 TARGET_USER_ID=<from config.json>
 
@@ -157,31 +168,55 @@ CHANNEL_ID=$(curl -s -H "Authorization: Bot $TOKEN" -H "Content-Type: applicatio
   -d "{\"recipient_id\": \"$TARGET_USER_ID\"}" \
   https://discord.com/api/v10/users/@me/channels | jq -r '.id')
 
-# Send proposal summary
+# Build message payload safely using a temp file (avoids JSON escaping issues in shell)
+python3 -c "
+import json, sys
+msg = sys.argv[1]
+print(json.dumps({'content': msg}))
+" "**autoevolve proposal**
+
+File: <file>
+Type: <type>
+Description: <description>
+
+Rationale: <rationale>
+
+React thumbsup to approve, thumbsdown to reject." > /tmp/autoevolve-msg.json
+
 curl -s -H "Authorization: Bot $TOKEN" -H "Content-Type: application/json" \
-  -d "{\"content\": \"**autoevolve proposal**\n\nFile: <file>\nType: <type>\nDescription: <description>\n\nRationale: <rationale>\n\nReact 👍 to approve, 👎 to reject.\"}" \
+  -d @/tmp/autoevolve-msg.json \
   "https://discord.com/api/v10/channels/$CHANNEL_ID/messages"
+
+rm -f /tmp/autoevolve-msg.json
 ```
 
-Then stop. The mutation will be applied in the next cycle after approval, or by a follow-up invocation.
+Then **stop**. The mutation will be applied in the next cycle after approval, or by a follow-up invocation. Do not proceed to step 8 in the same invocation unless the human has already responded.
 
 ### 8. Apply or Discard
 
 Check whether the human approved or rejected the proposal from step 7.
 
+**All git commands in this step run inside `workspace_path`** (the agent's workspace repo, NOT the autoevolve repo).
+
 - **Approved** (thumbsup reaction on the Discord DM, or explicit approval):
-  1. Create branch: `git checkout -b evolve/<agent_name>/<date>-<short-description>`
-  2. Apply the change to the target file
-  3. `git add <file> && git commit -m "evolve: <description>"`
-  4. `git checkout main && git merge evolve/<agent_name>/<date>-<short-description>`
-  5. `git push origin main`
-  6. Record in `experiments.tsv`:
+  1. First, check the workspace for uncommitted changes:
+     ```bash
+     cd <workspace_path>
+     git status --porcelain
+     ```
+     If there are uncommitted changes, **stop and notify the human** — do not create a branch on top of a dirty tree. The agent may be mid-session. Wait for a clean state.
+  2. Create branch: `git checkout -b evolve/<agent_name>/<date>-<short-description>`
+  3. Apply the change to the target file (at `<workspace_path>/<file>`)
+  4. `git add <file> && git commit -m "evolve: <description>"`
+  5. `git checkout main && git merge evolve/<agent_name>/<date>-<short-description>`
+  6. `git push origin main`
+  7. Record in `local/experiments.tsv` (back in the autoevolve directory):
      ```
      <date>\t<commit>\t<file>\t<type>\t<description>\t<current_score>\t-\tpending
      ```
 
 - **Rejected** (thumbsdown reaction, explicit rejection, or no response after a reasonable period):
-  1. Record in `experiments.tsv` with status `rejected` and no commit hash:
+  1. Record in `local/experiments.tsv` with status `rejected` and no commit hash:
      ```
      <date>\t-\t<file>\t<type>\t<description>\t<current_score>\t-\trejected
      ```
@@ -193,8 +228,10 @@ Check whether the human approved or rejected the proposal from step 7.
 
 ## Important Notes
 
-- **One cycle per invocation.** Do not loop. The human controls cadence.
-- **Never modify agent files during this session beyond the approved mutation.** You are the evolution controller, not the agent.
+- **One cycle per invocation.** Run steps 1 through 7 (or 8 if approval already exists), then STOP. Do not loop back to step 1. Do not run a second cycle. The human controls cadence.
+- **One mutation per cycle.** Propose exactly one change to exactly one file. If you see multiple improvement opportunities, pick the strongest one and save the rest for future cycles.
+- **Never modify agent files during this session beyond the approved mutation.** You are the evolution controller, not the agent. Do not "fix" things you notice in the agent's files outside the formal mutation process.
+- **Stop after notifying.** Step 7 ends the cycle unless the human has already approved. Do not wait, poll, or loop for a response.
 - **Be conservative.** A mutation that makes things slightly worse damages trust. Prefer safe bets.
 - **Log everything.** The experiment log is the audit trail. Every action should be traceable.
 - **Respect the markers.** `<!-- NO_EVOLVE -->` sections are sacred. Period.
