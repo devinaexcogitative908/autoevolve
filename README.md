@@ -23,6 +23,18 @@ Inspired by [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) 
 
 The core insight from autoresearch: **mutate, evaluate, keep-or-discard, repeat**. The difference is that agent quality is measured through human feedback signals (reactions, corrections, praise), not a numeric loss function.
 
+## Stack
+
+This framework is built for a specific stack. It's not trying to be universal — it solves one setup well:
+
+- **Agent platform:** [OpenClaw](https://github.com/anthropics/openclaw) (or any system where agents load personality from markdown files at session start)
+- **Chat platform:** Discord (reaction listener uses Discord Gateway; notifications via Discord DM)
+- **Evolution engine:** Claude Code (runs the mutation loop as a CLI session on the agent's VM)
+- **Service manager:** systemd (for the reaction listener daemon)
+- **Version control:** Git (commits = experiments, reverts = discards)
+
+If your agents use a different chat platform or service manager, the core concepts still apply but the reaction listener and notification mechanism would need adapting.
+
 ## Concept mapping
 
 | autoresearch | autoevolve |
