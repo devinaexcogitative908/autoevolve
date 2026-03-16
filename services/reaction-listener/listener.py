@@ -14,6 +14,7 @@ import json
 import logging
 import os
 import sys
+from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -97,6 +98,15 @@ def append_signal(signals_path: Path, signal: dict) -> None:
 
 
 class ReactionListener(discord.Client):
+    # Maximum entries in the dedup cache. At one entry per unique
+    # (user, message) reaction, 50 000 covers weeks of typical activity.
+    # Without a bound, the dict grows forever — a memory leak over months
+    # of continuous operation.  When the limit is reached the oldest entry
+    # is evicted (FIFO via OrderedDict).  Evicting an old entry only means
+    # that if someone reacts to a very old message, the dedup won't apply
+    # (harmless — stale reactions on old messages are rare and low-impact).
+    DEDUP_CACHE_MAX = 50_000
+
     def __init__(self, signals_path: Path, **kwargs):
         intents = discord.Intents.default()
         intents.guild_messages = True
@@ -112,7 +122,8 @@ class ReactionListener(discord.Client):
         # message and generate 10 positive signals, gaming the score.
         # Keys are (user_id, message_id); values are the classification that
         # was recorded so we can emit the correct undo on reaction_remove.
-        self._scored: dict[tuple[int, int], str] = {}
+        # Uses OrderedDict for bounded FIFO eviction (see DEDUP_CACHE_MAX).
+        self._scored: OrderedDict[tuple[int, int], str] = OrderedDict()
 
     async def on_ready(self):
         self.bot_user_id = self.user.id
@@ -175,6 +186,9 @@ class ReactionListener(discord.Client):
                 )
                 return
             self._scored[key] = classification
+            # Evict oldest entries if cache is full
+            while len(self._scored) > self.DEDUP_CACHE_MAX:
+                self._scored.popitem(last=False)
         elif event_type == "reaction_remove":
             prev = self._scored.get(key)
             if prev is None:
