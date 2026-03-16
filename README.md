@@ -1,6 +1,6 @@
 # autoevolve
 
-*[autoresearch](https://github.com/karpathy/autoresearch) lets AI agents evolve training code overnight. autoevolve does the same thing, but for the agents themselves. It watches how humans react, proposes mutations to the agent's personality and behavior files, keeps what works, and reverts what doesn't. Your agents get better while you sleep.*
+*[autoresearch](https://github.com/karpathy/autoresearch) lets AI agents evolve training code overnight. autoevolve does the same thing, but for the agents themselves. It watches how humans react, proposes mutations to the agent's personality and behavior files, keeps what works, and reverts what doesn't. Over time, your agents autonomously evolve.*
 
 The idea: take the evolutionary loop from [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — where an AI agent autonomously mutates training code, runs experiments, and keeps improvements — and apply it to **agent behavior files** instead. In autoresearch, the agent optimizes `train.py` and measures `val_bpb`. Here, the agent optimizes its own personality and instruction files (`AGENTS.md`, `SOUL.md`, etc.) and measures fitness through human feedback signals: Discord reactions, explicit praise or corrections, and task outcomes. A weekly evolution cycle analyzes these signals, proposes a single small mutation, and waits for your approval. If the mutation helps, it stays. If it hurts, it gets reverted. Mutate, evaluate, keep-or-discard, repeat.
 
