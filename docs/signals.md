@@ -61,25 +61,37 @@ One JSON object per line in `signals.jsonl`:
 
 Configurable in `config.json`. Defaults:
 
-| Signal | Weight | Rationale |
+| Weight key | Value | Applies to |
 |---|---|---|
-| explicit_positive | +5 | Highest signal — human took time to praise |
-| explicit_negative | -5 | Highest negative — something went wrong |
-| reaction_positive | +2 | Low-effort but genuine acknowledgment |
-| reaction_negative | -3 | Weighted slightly higher than positive (negativity bias) |
-| task_complete | +3 | Completing tasks is the core job |
-| correction | -3 | Agent needed fixing mid-task |
-| no_reaction | -0.5 | Weak signal — silence could mean many things |
+| `explicit_positive` | +5 | `type: "explicit_positive"` — human took time to praise |
+| `explicit_negative` | -5 | `type: "explicit_negative"` — something went wrong |
+| `reaction_positive` | +2 | `type: "reaction_add"` with `classification: "positive"` |
+| `reaction_negative` | -3 | `type: "reaction_add"` with `classification: "negative"` |
+| `task_complete` | +3 | `type: "task_complete"` with `corrections: 0` |
+| `correction` | -3 | `type: "correction"` or `type: "task_complete"` with `corrections > 0` |
+| `no_reaction` | -0.5 | Future: absence detection (not yet implemented) |
 
 ## Scoring
 
-The evolution loop computes a score over the evaluation window (default 7 days):
+The evolution loop computes a score over the evaluation window (default 7 days). Each signal is mapped to a weight key from `signal_weights` in config:
 
 ```
-score = sum(weight[signal.type] for signal in window_signals)
+For each signal in window:
+  if type == "explicit_positive":       score += weights["explicit_positive"]
+  if type == "explicit_negative":       score += weights["explicit_negative"]
+  if type == "correction":              score += weights["correction"]
+  if type == "task_complete":
+    if corrections == 0:                score += weights["task_complete"]
+    else:                               score += weights["correction"]
+  if type == "reaction_add":
+    if classification == "positive":    score += weights["reaction_positive"]
+    if classification == "negative":    score += weights["reaction_negative"]
+  if type == "reaction_remove":
+    if classification == "positive":    score -= weights["reaction_positive"]
+    if classification == "negative":    score -= weights["reaction_negative"]
 ```
 
-For `task_complete` signals with `corrections > 0`, use the `correction` weight instead.
+**Note:** The reaction listener emits `reaction_add`/`reaction_remove` with a `classification` field. These must be mapped to the `reaction_positive`/`reaction_negative` weight keys using the classification. A `reaction_remove` inverts the sign (undoing the original add).
 
 The absolute score is less important than the **delta** between evaluation windows (before vs after a mutation).
 

@@ -17,17 +17,25 @@ Run one cycle per invocation. Do NOT loop or repeat — one cycle, then stop.
 
 ### 1. Compute Current Fitness Score
 
-Filter `signals.jsonl` to entries within the last `eval_window_days` (from config). For each signal, apply the weight from `signal_weights` in config:
+Filter `signals.jsonl` to entries within the last `eval_window_days` (from config). For each signal, map it to a weight key from `signal_weights` in config using the rules below, then sum all weighted values to get the **current window score**.
 
-- `explicit_positive` — human praised the agent
-- `explicit_negative` — human expressed dissatisfaction
-- `reaction_positive` — thumbsup, heart, etc. on agent messages (source: "discord")
-- `reaction_negative` — thumbsdown on agent messages (source: "discord")
-- `task_complete` — agent completed a task (bonus if corrections=0)
-- `correction` — agent was corrected mid-task
-- `no_reaction` — (future: absence detection)
+**Mapping rules (signal → weight key):**
 
-Sum the weighted signals to get the **current window score**.
+| Signal `type` | Signal `source` | Extra fields | Weight key used |
+|---|---|---|---|
+| `explicit_positive` | self | — | `explicit_positive` |
+| `explicit_negative` | self | — | `explicit_negative` |
+| `correction` | self | — | `correction` |
+| `task_complete` | self | `corrections` = 0 | `task_complete` |
+| `task_complete` | self | `corrections` > 0 | `correction` (penalize instead of reward) |
+| `reaction_add` | discord | `classification` = "positive" | `reaction_positive` |
+| `reaction_add` | discord | `classification` = "negative" | `reaction_negative` |
+| `reaction_remove` | discord | `classification` = "positive" | Subtract `reaction_positive` (undo the add) |
+| `reaction_remove` | discord | `classification` = "negative" | Subtract `reaction_negative` (undo the add) |
+
+**Important:** The reaction listener writes `type: "reaction_add"` or `"reaction_remove"` with a `classification` field. You must use the classification to look up the correct weight. A `reaction_remove` inverts the sign — if someone removes a thumbsup, subtract the `reaction_positive` weight (i.e., apply `-reaction_positive`).
+
+Signals with types not listed above (or with no matching weight key) should be skipped with a note in the analysis.
 
 ### 2. Evaluate Last Mutation
 
