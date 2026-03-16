@@ -17,7 +17,7 @@ The repo is deliberately kept small. There are really only four things that matt
 - **`templates/agents-md-patch.md`** — a block of instructions you paste into your agent's AGENTS.md telling it to log feedback signals during sessions.
 - **`services/reaction-listener/`** — a Discord Gateway listener that tracks reactions (thumbsup, heart, etc.) on the agent's messages across all channels and threads.
 
-After installation, each agent gets an `evolution/` directory in its own workspace with runtime data (signals, experiment log, proposals). The framework repo contains only templates and tooling — no agent-specific data.
+After installation, agent-specific runtime data (signals, experiment log, proposals) lives in `local/` inside the cloned repo — gitignored so it never touches the public repo. A pre-commit hook with LLM review adds a second layer of protection.
 
 ### The loop
 
@@ -45,8 +45,8 @@ After installation, each agent gets an `evolution/` directory in its own workspa
 | `prepare.py` (fixed ground truth) | Agent's immutable files (IDENTITY.md, USER.md) + framework |
 | `val_bpb` (fitness metric) | Composite signal: reactions + feedback + task outcomes |
 | 5-min training run | 7-day evaluation window |
-| `results.tsv` | `evolution/experiments.tsv` |
-| `program.md` | `evolution/PROGRAM.md` |
+| `results.tsv` | `local/experiments.tsv` |
+| `program.md` | `templates/PROGRAM.md` |
 | "NEVER STOP" autonomous loop | Weekly cycle, human-gated |
 
 ## Quick start
@@ -56,31 +56,28 @@ After installation, each agent gets an `evolution/` directory in its own workspa
 ```bash
 # 1. Clone autoevolve on the agent's VM
 git clone https://github.com/abeldantas/autoevolve.git /opt/autoevolve
+cd /opt/autoevolve
 
-# 2. Create the evolution directory in the agent's workspace
-cd ~/.openclaw/workspace
-mkdir -p evolution/snapshots
+# 2. Create local directory (gitignored — agent-specific data lives here)
+mkdir -p local/snapshots
+cp templates/config.json local/
+cp templates/experiments.tsv local/
+touch local/signals.jsonl
+# Edit local/config.json — set agent name, workspace path, mutable files, Discord user ID
 
-# 3. Copy and customize templates
-cp /opt/autoevolve/templates/PROGRAM.md evolution/
-cp /opt/autoevolve/templates/config.json evolution/
-cp /opt/autoevolve/templates/experiments.tsv evolution/
-touch evolution/signals.jsonl
-# Edit evolution/config.json — set agent name, mutable files, Discord user ID
-
-# 4. Add signal logging to the agent's instructions
+# 3. Add signal logging to the agent's instructions
 # Paste the block from templates/agents-md-patch.md into your agent's AGENTS.md
 
-# 5. Install and start the reaction listener
+# 4. Install and start the reaction listener
 cd /opt/autoevolve/services/reaction-listener
 pip install -r requirements.txt
 sudo cp reaction-listener.service /etc/systemd/system/
 # Edit the service file: set BOT_TOKEN_PATH and SIGNALS_PATH
 sudo systemctl daemon-reload && sudo systemctl enable --now reaction-listener
 
-# 6. Let it collect signals for 1-2 weeks, then run the first cycle
-cd ~/.openclaw/workspace
-claude "Read evolution/PROGRAM.md and run one evolution cycle."
+# 5. Let it collect signals for 1-2 weeks, then run the first cycle
+cd /opt/autoevolve
+claude "Read templates/PROGRAM.md and run one evolution cycle. Agent config is in local/config.json."
 ```
 
 See [INSTALL.md](INSTALL.md) for the full guide.
@@ -88,18 +85,20 @@ See [INSTALL.md](INSTALL.md) for the full guide.
 ## Project structure
 
 ```
-templates/
-  PROGRAM.md             — evolution loop instructions (Claude Code reads this)
-  config.json            — default config with signal weights and thresholds
-  agents-md-patch.md     — instruction block to paste into agent's AGENTS.md
-  experiments.tsv        — header-only template for experiment tracking
+templates/                          # Framework (tracked, public)
+  PROGRAM.md                        — evolution loop instructions (Claude Code reads this)
+  config.json                       — default config with signal weights and thresholds
+  agents-md-patch.md                — instruction block to paste into agent's AGENTS.md
+  experiments.tsv                   — header-only template for experiment tracking
 services/
-  reaction-listener/     — Discord reaction listener (Gateway-based, systemd)
-docs/
-  concepts.md            — design philosophy, autoresearch mapping
-  signals.md             — signal types, weights, collection mechanisms
-  mutations.md           — mutation types, safety guardrails, protected zones
-  experiment-loop.md     — the evolution loop in detail
+  reaction-listener/                — Discord reaction listener (Gateway-based, systemd)
+docs/                               — design philosophy, signals, mutations, loop details
+local/                              # Agent-specific data (gitignored, never pushed)
+  config.json                       — this agent's config (copied from template)
+  signals.jsonl                     — raw feedback signals (append-only)
+  experiments.tsv                   — experiment history (append-only)
+  proposed-mutation.md              — current pending proposal
+  snapshots/                        — file snapshots for drift detection
 ```
 
 ## Design choices

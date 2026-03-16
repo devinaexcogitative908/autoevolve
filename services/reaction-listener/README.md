@@ -47,7 +47,7 @@ sudo nano /etc/systemd/system/reaction-listener.service
 Edit the following:
 - `User` and `Group` — the system user the agent runs as
 - `BOT_TOKEN_PATH` — path to the file containing the Discord bot token (plain text or OpenClaw JSON format)
-- `SIGNALS_PATH` — path to the agent's `evolution/signals.jsonl`
+- `SIGNALS_PATH` — path to the agent's `local/signals.jsonl`
 
 ### Enable and start
 
@@ -67,7 +67,7 @@ sudo journalctl -u reaction-listener -f
 You should see:
 ```
 Connected as BotName#1234 (ID: 123456789)
-Signals path: /path/to/evolution/signals.jsonl
+Signals path: /path/to/local/signals.jsonl
 ```
 
 React to one of the bot's messages in Discord. You should see a log entry and a new line in `signals.jsonl`.

@@ -52,7 +52,7 @@ Agent instruction files tend to accumulate rules over time. The evolution loop s
 
 Over many cycles, cumulative mutations can significantly change a file from its original state. The `drift_threshold_percent` config value (default 50%) sets the alarm threshold.
 
-Snapshots of the original files are stored in `evolution/snapshots/`. Before proposing a mutation, the loop compares the current file against the snapshot. If drift exceeds the threshold, the proposal flags this for human review.
+Snapshots of the original files are stored in `local/snapshots/`. Before proposing a mutation, the loop compares the current file against the snapshot. If drift exceeds the threshold, the proposal flags this for human review.
 
 Drift detection prevents the "ship of Theseus" problem — gradual changes that individually seem fine but collectively transform the agent's personality beyond recognition.
 

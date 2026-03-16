@@ -7,7 +7,7 @@ Copy the block below and paste it into your agent's main instruction file (e.g.,
 ```markdown
 ## Evolution — Signal Logging
 
-You are part of an ongoing self-improvement loop. During sessions, log feedback signals to `evolution/signals.jsonl` (one JSON object per line). This data drives weekly evolution proposals.
+You are part of an ongoing self-improvement loop. During sessions, log feedback signals to `local/signals.jsonl` (one JSON object per line). This data drives weekly evolution proposals.
 
 **When to log:**
 
@@ -27,7 +27,7 @@ You are part of an ongoing self-improvement loop. During sessions, log feedback 
   ```
 
 **Rules:**
-- Use `exec` to append (the file is outside workspace if needed): `echo '{"ts":"..."}' >> evolution/signals.jsonl`
+- Use `exec` to append (the file is outside workspace if needed): `echo '{"ts":"..."}' >> local/signals.jsonl`
 - One line per signal. Valid JSON. ISO 8601 timestamps.
 - Don't over-log. One signal per distinct feedback moment, not per message.
 - Session type: "main", "hook", "discord", "thread" — whatever applies.

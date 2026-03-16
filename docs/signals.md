@@ -6,7 +6,7 @@ Signals are the raw data that drives evolution decisions. They represent human f
 
 ### Source 1: Agent self-reporting
 
-The agent logs signals during sessions by appending to `evolution/signals.jsonl`. This requires a block in the agent's instruction file (see `templates/agents-md-patch.md`).
+The agent logs signals during sessions by appending to `local/signals.jsonl`. This requires a block in the agent's instruction file (see `templates/agents-md-patch.md`).
 
 The agent detects feedback in the human's messages:
 - Explicit praise or criticism

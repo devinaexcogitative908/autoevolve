@@ -4,3 +4,6 @@ __pycache__/
 *.egg-info/
 venv/
 .venv/
+
+# Agent-specific runtime data — never commit
+local/

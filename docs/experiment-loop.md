@@ -1,6 +1,6 @@
 # The Experiment Loop
 
-The evolution loop runs one cycle per invocation. It is invoked as a Claude Code session on the agent's VM, reading `evolution/PROGRAM.md` for instructions.
+The evolution loop runs one cycle per invocation. It is invoked as a Claude Code session on the agent's VM, reading `templates/PROGRAM.md` for instructions.
 
 ## Lifecycle of a mutation
 
@@ -44,7 +44,7 @@ The 10% threshold exists because signals are noisy. Small fluctuations in score 
 
 ## Experiment log format
 
-Tab-separated values in `evolution/experiments.tsv`:
+Tab-separated values in `local/experiments.tsv`:
 
 ```
 date	commit	file	type	description	pre_score	post_score	status

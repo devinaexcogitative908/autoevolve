@@ -18,7 +18,7 @@
   },
 
   "bot_token_path": "BOT_TOKEN_PATH",
-  "signals_path": "evolution/signals.jsonl",
+  "signals_path": "local/signals.jsonl",
 
   "signal_weights": {
     "explicit_positive": 5,

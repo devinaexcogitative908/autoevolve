@@ -6,9 +6,9 @@ You are the evolution controller. Your job is to analyze feedback signals, evalu
 
 Before running, read:
 1. This file (you're reading it)
-2. `evolution/config.json` — agent config (mutable files, weights, thresholds)
-3. `evolution/experiments.tsv` — experiment history
-4. `evolution/signals.jsonl` — raw feedback signals
+2. `local/config.json` — agent config (mutable files, weights, thresholds)
+3. `local/experiments.tsv` — experiment history
+4. `local/signals.jsonl` — raw feedback signals
 5. The agent's current mutable files (listed in config.json `mutable_files`)
 
 ## The Loop
@@ -51,7 +51,7 @@ Look at the signals from the current window and identify patterns:
 - **Unaddressed feedback** — is there feedback that suggests a behavior change not yet captured in the agent's files?
 - **Simplification opportunities** — are there instructions the agent ignores or that seem redundant?
 
-Write a brief analysis (3-5 bullet points) to `evolution/proposed-mutation.md` under a `## Signal Analysis` heading.
+Write a brief analysis (3-5 bullet points) to `local/proposed-mutation.md` under a `## Signal Analysis` heading.
 
 ### 4. Propose a Mutation
 
@@ -74,7 +74,7 @@ Based on the analysis, propose **one** small change to **one** mutable file.
 - `procedure_change` — modify a workflow/protocol
 - `tool_config` — update tool-specific notes
 
-Write the proposal to `evolution/proposed-mutation.md`:
+Write the proposal to `local/proposed-mutation.md`:
 
 ```markdown
 ## Signal Analysis
@@ -96,12 +96,12 @@ Write the proposal to `evolution/proposed-mutation.md`:
 ### 5. Check Drift
 
 Before proposing, check cumulative drift:
-- Compare the current mutable files against `evolution/snapshots/` (the original versions from installation).
+- Compare the current mutable files against `local/snapshots/` (the original versions from installation).
 - If any file has changed by more than `drift_threshold_percent`% from its snapshot, note this in the proposal and recommend a human review of the full file.
 
 If no snapshot exists yet, create one now:
 ```bash
-cp <mutable_file> evolution/snapshots/<mutable_file>
+cp <mutable_file> local/snapshots/<mutable_file>
 ```
 
 ### 6. Notify Human

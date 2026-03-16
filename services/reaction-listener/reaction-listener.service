@@ -10,7 +10,7 @@ Group=SYSTEM_USER
 
 # Set these to match your agent's setup
 Environment=BOT_TOKEN_PATH=/path/to/.openclaw/openclaw.json
-Environment=SIGNALS_PATH=/path/to/.openclaw/workspace/evolution/signals.jsonl
+Environment=SIGNALS_PATH=/opt/autoevolve/local/signals.jsonl
 
 ExecStart=/usr/bin/python3 /opt/autoevolve/services/reaction-listener/listener.py
 WorkingDirectory=/opt/autoevolve/services/reaction-listener
