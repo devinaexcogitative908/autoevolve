@@ -74,13 +74,21 @@ Before proposing, roll the D20 to determine what kind of mutation to attempt:
 python3 services/d20/roll.py
 ```
 
-The roll determines the mutation category (simplify, specify, signal-driven, procedural, bold, or freak). Follow the rolled strategy. If you roll a 1 (rest cycle), skip proposing entirely — write "Natural 1 — rest cycle" in the proposal and stop.
+The roll determines the mutation *approach*, NOT the mutation *target*. The target always comes from the signal analysis in step 3. The D20 tells you HOW to act on what the signals are saying:
 
-Also read `docs/mutation-strategies.md` for deeper guidance on each pattern.
+- Roll 5 (shorten) + signals show corrections around email formatting → shorten the email formatting section
+- Roll 7 (add example) + signals show positive reactions to calendar responses → add an example to the calendar rule
+- Roll 2 (remove dead weight) + signals show zero engagement with a section → remove that section
+
+**Signals pick the WHERE. The D20 picks the HOW.**
+
+Exceptions: Roll 1 (rest cycle) skips entirely. Roll 20 (freak mutation) is intentionally unconstrained — go creative, the human reviews it anyway.
+
+Also read `docs/mutation-strategies.md` for the full table and deeper guidance.
 
 ### 5. Propose a Mutation
 
-Based on the analysis AND the D20 roll, propose **one** small change to **one** mutable file.
+Based on the signal analysis (step 3) and the D20 strategy (step 4), propose **one** small change to **one** mutable file.
 
 **Rules:**
 - Only modify files listed in `mutable_files` in config.json.
