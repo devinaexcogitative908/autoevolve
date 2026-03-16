@@ -62,6 +62,7 @@ Look at the signals from the current window and identify patterns:
 - **Positive clusters** — what's earning praise or reactions?
 - **Unaddressed feedback** — is there feedback that suggests a behavior change not yet captured in the agent's files?
 - **Simplification opportunities** — are there instructions the agent ignores or that seem redundant?
+- **Signal source balance** — check that both self-reported signals (explicit_positive, correction, task_complete) and reaction signals (from Discord) are present in the window. If reaction signals exist but there are zero self-reported signals, the agent is likely not following its signal logging instructions — flag this prominently in the analysis and skip proposing a mutation (the signal data is incomplete and any score is unreliable).
 
 Write a brief analysis (3-5 bullet points) to `local/proposed-mutation.md` under a `## Signal Analysis` heading.
 
