@@ -30,30 +30,62 @@ logging.basicConfig(
 )
 log = logging.getLogger("autoevolve-reactions")
 
+# ---------------------------------------------------------------------------
 # Emoji classification
-POSITIVE_EMOJI = {
+# ---------------------------------------------------------------------------
+# Unicode emoji can carry invisible modifiers that break exact-match lookups:
+#   - Skin-tone (Fitzpatrick) modifiers  U+1F3FB .. U+1F3FF  (e.g. 👍🏽)
+#   - Variation selector VS16            U+FE0F               (e.g. ❤️ vs ❤)
+# Discord sends the full modified form, so we must normalize before lookup.
+
+
+def _strip_emoji_modifiers(s: str) -> str:
+    """Strip skin-tone modifiers and variation selectors from *s*."""
+    return "".join(
+        ch for ch in s
+        if not ("\U0001F3FB" <= ch <= "\U0001F3FF") and ch != "\uFE0F"
+    )
+
+
+def _build_emoji_set(raw: set[str]) -> set[str]:
+    """Normalize a set of emoji strings so lookups work regardless of
+    skin-tone or variation-selector differences in the input."""
+    return {_strip_emoji_modifiers(e) for e in raw}
+
+
+# Raw definitions (human-readable, may contain variation selectors)
+_POSITIVE_RAW = {
     "👍", "❤️", "👏", "🔥", "💯", "⭐", "🎉", "🚀", "🙌", "👌",
     "💪", "✨", "🙏", "🏆", "🥇", "👑", "🧠", "😎", "🧑‍🍳", "🐐",
-    # Discord custom names (without skin tone modifiers)
+    # Discord custom names (text, no modifiers possible)
     "thumbsup", "heart", "clap", "fire", "100", "star", "tada", "rocket",
     "raised_hands", "ok_hand", "muscle", "sparkles", "pray", "trophy",
     "medal", "crown", "brain", "sunglasses", "chef", "goat",
 }
 
-NEGATIVE_EMOJI = {
+_NEGATIVE_RAW = {
     "👎", "❌", "⛔",
     "thumbsdown", "x", "no_entry",
 }
+
+# Normalized sets used for actual lookups
+POSITIVE_EMOJI = _build_emoji_set(_POSITIVE_RAW)
+NEGATIVE_EMOJI = _build_emoji_set(_NEGATIVE_RAW)
 
 # Neutral emoji are ignored (eyes, thinking, question, shrug, etc.)
 
 
 def classify_emoji(emoji_str: str) -> str | None:
-    """Classify an emoji as positive, negative, or None (neutral/ignored)."""
-    name = emoji_str.strip().lower().replace(":", "")
-    if name in POSITIVE_EMOJI or emoji_str in POSITIVE_EMOJI:
+    """Classify an emoji as positive, negative, or None (neutral/ignored).
+
+    Handles skin-tone variants (👍🏽 -> 👍) and Discord's text-name format
+    (:thumbsup: -> thumbsup) transparently.
+    """
+    normalized = _strip_emoji_modifiers(emoji_str)
+    name = normalized.strip().lower().replace(":", "")
+    if name in POSITIVE_EMOJI or normalized in POSITIVE_EMOJI:
         return "positive"
-    if name in NEGATIVE_EMOJI or emoji_str in NEGATIVE_EMOJI:
+    if name in NEGATIVE_EMOJI or normalized in NEGATIVE_EMOJI:
         return "negative"
     return None
 

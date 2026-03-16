@@ -20,6 +20,8 @@ A background service that monitors Discord for reactions on the agent's messages
 
 **Neutral (ignored):** everything else (eyes, thinking, question, shrug, etc.)
 
+**Skin-tone and variant handling:** Discord sends emoji with skin-tone modifiers (e.g., thumbsup with medium skin tone) and variation selectors (e.g., red heart with VS16). The listener strips these Unicode modifiers before classification, so all skin-tone variants of a recognized emoji are classified correctly.
+
 ## Setup
 
 ### Prerequisites
