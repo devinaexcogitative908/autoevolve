@@ -2,7 +2,7 @@
 
 *Upgrades.*
 
-Your AI agents watch how humans react to them, propose mutations to their own behavior files, keep what works, and revert what doesn't. Over time, they autonomously evolve.
+Your AI agents watch how humans react to them, propose mutations to their own behavior files, keep what works, and revert what doesn't. Over time, they evolve.
 
 The idea: take the evolutionary loop from [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — where an AI agent autonomously mutates training code, runs experiments, and keeps improvements — and apply it to **agent behavior files** instead. In autoresearch, the agent optimizes `train.py` and measures `val_bpb`. Here, the agent optimizes its own personality and instruction files (`AGENTS.md`, `SOUL.md`, etc.) and measures fitness through human feedback signals: Discord reactions, explicit praise or corrections, and task outcomes. A weekly evolution cycle analyzes these signals, proposes a single small mutation, and waits for your approval. If the mutation helps, it stays. If it hurts, it gets reverted. Mutate, evaluate, keep-or-discard, repeat.
 
