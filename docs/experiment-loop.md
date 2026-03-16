@@ -12,8 +12,10 @@ Evolution cycle (invocation)
   1. Compute fitness score
   2. Evaluate last mutation (keep/revert/neutral)
   3. Analyze signal patterns
-  4. Propose new mutation
-  5. Notify human
+  4. Review experiment history (learn from past cycles)
+  5. Roll D20 for mutation strategy
+  6. Propose new mutation + check drift
+  7. Notify human
         |
         v
 Human reviews (Discord DM)
